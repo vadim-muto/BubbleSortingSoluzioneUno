@@ -1,0 +1,36 @@
+muovi(C,X,Y,X1,Y1) | nonMuovi(C,X,Y,X1,Y1) :- in(C,X,Y), in(vuota,X1,Y1), C!=vuota, Y!=Y1.
+
+:- muovi(C,X,Y,X1,Y1), muovi(C,X,Y,X2,Y2), X1!=X2.
+:- muovi(C,X,Y,X1,Y1), muovi(C,X,Y,X2,Y2), Y1!=Y2.
+:- #count{X,Y : muovi(_,X,Y,_,_)} != 1.
+:- muovi(_,_,_,_,Y), mossaNonValida(Y).
+:- muovi(_,X,Y,_,_),  esistePallinaSopra(X,Y).
+:- muovi(_,_,_,_,Y), not coloreValido(Y).
+:- muovi(_,_,_,X,Y), not primaPosDisponibile(X,Y).
+:- muovi(_,_,Y,_,_), containerOK(Y).
+
+mossaNonValida(Y) :- in(_,_,Y), #count{C,X : in(C,X,Y), C!=vuota} = 5. %container tutti pieni
+esistePallinaSopra(X,Y) :- muovi(_,X,Y,_,_), in(C,X1,Y), X1=X-1, C!=vuota. %esiste pallina sopra
+coloreValido(Y) :- muovi(C,_,_,X1,Y), in(C,X2,Y), X2=X1+1.
+coloreValido(Y) :- muovi(_,_,_,_,Y), #count{X : in(vuota,X,Y)} = 4.
+primaPosDisponibile(Z,Y) :- muovi(_,_,_,_,Y), #max{X : in(vuota,X,Y)} = Z. 
+containerOK(Y) :- in(_,_,Y), numPallineContainer(Y,N), #count{C: in(C,X,Y), C!=vuota} = 1, N=4.
+unaSolaPallina(Y) :- in(_,_,Y), #count{X : in(C,X,Y), C!=vuota} = 1.
+numPallineContainer(Y,N) :- in(_,_,Y), #count{C,X : in(C,X,Y), C!=vuota} = N.
+numTipiPallineContainer(C,Y,N) :- in(C,_,Y), #count{X : in(C,X,Y)} = N.
+numColoriDiversiDa(C,Y,N) :- in(C,_,Y), #count{C : in(C,X,Y), C!=vuota} = N.
+containerVuoto(Y) :- in(_,_,Y), #count{X: in(vuota,X,Y)} = 4.
+
+:~ muovi(_,_,_,_,Y), containerVuoto(Y). [1@1] %vuoti
+:~ muovi(_,_,Y,_,_), numPallineContainer(Y,N), D=4-N. [D@2] %più palline possibili
+:~ muovi(C,_,Y,_,_), numTipiPallineContainer(C,Y,N). [N@3] %pesca da meno palline possibili di un det. colore
+:~ muovi(C1,_,_,_,Y), #sum{N,C2 : numColoriDiversiDa(C2,Y,N), C1!=C2} = D. [D@4] %inserisci dove ci sono meno palline possibili di un det. colore
+:~ muovi(_,_,Y1,_,Y2), unaSolaPallina(Y1), containerVuoto(Y2). [1@5]
+
+in(vuota,X,Y) :- muovi(_,X,Y,_,_).
+in(C,X,Y) :- muovi(C,_,_,X,Y).
+
+
+
+
+
